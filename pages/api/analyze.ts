@@ -16,40 +16,50 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end('Method not allowed');
-
-  const form = new formidable.IncomingForm({ multiples: false });
-
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'File parsing error' });
+  try {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const file = files.file?.[0];
-    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+    const form = new formidable.IncomingForm({ multiples: false });
 
-    const filePath = file.filepath;
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        console.error('Formidable error:', err);
+        return res.status(500).json({ error: 'File parsing error' });
+      }
 
-    try {
-      const transcription = await openai.audio.transcriptions.create({
-        file: fs.createReadStream(filePath),
-        model: 'whisper-1',
-        response_format: 'json',
-        temperature: 0.2,
-      });
+      const file = files.file?.[0];
+      if (!file) {
+        console.warn('No file uploaded');
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
 
-      res.status(200).json({
-        transcription,
-        analysis: {
-          mood: 'Balanced',
-          stress: 'Low',
-          confidence: 'Moderate',
-        },
-      });
-    } catch (error) {
-      console.error('OpenAI error:', error);
-      res.status(500).json({ error: 'AI processing failed' });
-    }
-  });
+      const filePath = file.filepath;
+
+      try {
+        const transcription = await openai.audio.transcriptions.create({
+          file: fs.createReadStream(filePath),
+          model: 'whisper-1',
+          response_format: 'json',
+          temperature: 0.2,
+        });
+
+        res.status(200).json({
+          transcription,
+          analysis: {
+            mood: 'Balanced',
+            stress: 'Low',
+            confidence: 'Moderate',
+          },
+        });
+      } catch (error) {
+        console.error('OpenAI error:', error);
+        res.status(500).json({ error: 'AI processing failed' });
+      }
+    });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    res.status(500).json({ error: 'Unexpected server error' });
+  }
 }
