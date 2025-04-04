@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function AudioUploader() {
+const AudioUploader = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -8,18 +8,16 @@ export default function AudioUploader() {
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
-    setResult(null);
 
     const formData = new FormData();
-    formData.append('audio', file);
+    formData.append('file', file);
 
     try {
-      const res = await fetch('/api/analyze', {
+      const response = await fetch('/api/analyze', {
         method: 'POST',
         body: formData,
       });
-
-      const data = await res.json();
+      const data = await response.json();
       setResult(data);
     } catch (error) {
       console.error('Upload failed:', error);
@@ -35,27 +33,26 @@ export default function AudioUploader() {
       <input
         type="file"
         accept="audio/*"
-        className="mb-4 w-full bg-gray-800 text-white"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
+        className="mb-4"
       />
 
       <button
         onClick={handleUpload}
         disabled={!file || loading}
-        className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition-all"
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded disabled:opacity-50"
       >
-        {loading ? 'Analyzing...' : 'Analyze Audio'}
+        {loading ? 'Analyzing...' : 'Upload & Analyze'}
       </button>
 
       {result && (
-        <div className="mt-6 bg-gray-800 p-4 rounded-lg">
-          <h3 className="text-xl font-semibold text-green-400 mb-2">Analysis Result</h3>
-          <p className="text-sm text-gray-400">Transcript:</p>
-          <p className="text-white italic mb-4">{result.transcript}</p>
-          <p className="text-sm text-gray-400">AI Insight:</p>
-          <p className="text-cyan-300">{result.analysis}</p>
+        <div className="mt-4 p-4 bg-gray-800 rounded">
+          <h3 className="font-bold text-lg mb-2">AI Analysis</h3>
+          <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default AudioUploader;
