@@ -15,10 +15,31 @@ export default function AudioUploader() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch('/api/analyze', {
+  method: 'POST',
+  body: formData,
+});
+
+let result;
+try {
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    result = await res.json();
+  } else {
+    const text = await res.text();
+    console.error('Non-JSON response:', text);
+    throw new Error('Server returned non-JSON response');
+  }
+
+  if (!res.ok) {
+    throw new Error(result?.error || 'Unknown error');
+  }
+
+  console.log('✅ Upload and AI response:', result);
+} catch (err) {
+  console.error('🚨 Upload error:', err.message || err);
+}
+
 
       const data = await response.json();
       console.log('Response from /api/analyze:', data);
