@@ -1,6 +1,7 @@
+// components/AudioUploader.tsx
 import React, { useState } from 'react';
 
-const AudioUploader = () => {
+export default function AudioUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -8,6 +9,7 @@ const AudioUploader = () => {
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
+    console.log('Uploading file:', file);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -17,10 +19,13 @@ const AudioUploader = () => {
         method: 'POST',
         body: formData,
       });
+
       const data = await response.json();
+      console.log('Response from /api/analyze:', data);
+
       setResult(data);
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('Upload error:', error);
     } finally {
       setLoading(false);
     }
@@ -39,20 +44,20 @@ const AudioUploader = () => {
 
       <button
         onClick={handleUpload}
+        className="bg-blue-500 px-6 py-2 rounded-full hover:bg-blue-600 transition"
         disabled={!file || loading}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded disabled:opacity-50"
       >
         {loading ? 'Analyzing...' : 'Upload & Analyze'}
       </button>
 
       {result && (
-        <div className="mt-4 p-4 bg-gray-800 rounded">
-          <h3 className="font-bold text-lg mb-2">AI Analysis</h3>
-          <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold mb-2">AI Results</h3>
+          <pre className="bg-gray-800 p-4 rounded-lg overflow-x-auto">
+            {JSON.stringify(result, null, 2)}
+          </pre>
         </div>
       )}
     </div>
   );
-};
-
-export default AudioUploader;
+}
