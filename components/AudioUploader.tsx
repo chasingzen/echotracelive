@@ -34,3 +34,26 @@ export default function AudioUploader() {
 
       <input
         type="file"
+        accept="audio/*"
+        className="mb-4 w-full bg-gray-800 text-white"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+      />
+
+      <button
+        onClick={handleUpload}
+        disabled={!file || loading}
+        className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition-all"
+      >
+        {loading ? 'Analyzing...' : 'Analyze Audio'}
+      </button>
+
+      {result && (
+        <div className="mt-6 bg-gray-800 p-4 rounded-lg">
+          <h3 className="text-xl font-semibold text-green-400 mb-2">Analysis Result</h3>
+          <p className="text-sm text-gray-400">Transcript:</p>
+          <p className="text-white italic mb-4">{result.transcript}</p>
+          <p className="text-sm text-gray-400">AI Insight:</p>
+          <p className="text-cyan-300">{result.analysis}</p>
+        </div>
+      )}
+    </div> // ✅ ← This was missing or
